@@ -1,0 +1,28 @@
+{
+  "user_question": "Research the pros and cons of using a multi-agent architecture for customer support automation.",
+  "short_answer": "No source data was available to assess the pros and cons of a multi-agent architecture for customer support automation.",
+  "key_findings": [],
+  "sources_used": [],
+  "confidence_level": "Low",
+  "confidence_score": 0.15,
+  "limitations_or_assumptions": [
+    "No external documents were retrieved; findings are not based on specific sources.",
+    "Limited source diversity: findings based on sparse web search results.",
+    "Full page scraping was blocked or timed out; synthesis relied on search snippets."
+  ],
+  "suggested_next_steps": [
+    "Conduct a literature search in academic databases, industry whitepapers, and case studies to gather empirical evidence on multi-agent architectures in customer support."
+  ],
+  "execution_metadata": {
+    "plan_duration_sec": 20.558,
+    "tools_duration_sec": 20.032,
+    "synthesis_duration_sec": 9.742,
+    "total_latency_sec": 50.332,
+    "sources_retrieved_count": 0,
+    "sources_retained_count": 0,
+    "primary_provider": "groq",
+    "model_used": "openai/gpt-oss-120b",
+    "failover_triggered": false,
+    "failover_reason": null
+  }
+}
