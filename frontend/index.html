@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predixion AI | Production Research Agent</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- React & ReactDOM -->
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <!-- Babel for JSX -->
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+    body {
+      font-family: 'Inter', sans-serif;
+      background-color: #0b0f19;
+      color: #f1f5f9;
+    }
+    .mono { font-family: 'JetBrains Mono', monospace; }
+    .glass-card {
+      background: rgba(18, 24, 38, 0.75);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glow-cyan {
+      box-shadow: 0 0 25px -5px rgba(6, 182, 212, 0.25);
+    }
+    @keyframes pulse-slow {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(0.98); }
+    }
+    .animate-pulse-slow {
+      animation: pulse-slow 3s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="min-h-screen">
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useEffect } = React;
+
+    const PRESETS = [
+      { id: 'vector', title: 'Vector DBs for RAG', q: 'Compare the top 3 open-source vector databases for a startup building RAG products.' },
+      { id: 'hr', title: 'Indian HR Tech Startups', q: 'Find 5 Indian B2B SaaS startups in HR tech and summarize their positioning.' },
+      { id: 'multiagent', title: 'Multi-Agent Support Pros/Cons', q: 'Research the pros and cons of using a multi-agent architecture for customer support automation.' },
+      { id: 'memory', title: 'Agent Memory Approaches', q: 'Compare different approaches to adding memory in an AI support agent.' }
+    ];
+
+    function App() {
+      const [query, setQuery] = useState(PRESETS[0].q);
+      const [mode, setMode] = useState('deep');
+      const [failureMode, setFailureMode] = useState('none');
+      const [loading, setLoading] = useState(false);
+      const [currentStep, setCurrentStep] = useState(0);
+      const [report, setReport] = useState(null);
+      const [error, setError] = useState(null);
+
+      const steps = [
+        { name: '1. Task Planner', desc: 'Decomposing query & generating sub-tasks' },
+        { name: '2. Web Search Hub', desc: 'Querying DuckDuckGo multi-search' },
+        { name: '3. Deep Web Scraper', desc: 'Trafilatura content extraction & sanitization' },
+        { name: '4. Grounded Synthesizer', desc: 'Groq Llama-3.3-70B source-grounded report' },
+        { name: '5. Citation Verifier', desc: 'Anti-hallucination check & dynamic scoring' }
+      ];
+
+      const runResearch = async (searchQuery = query) => {
+        if (!searchQuery.trim()) return;
+        setLoading(true);
+        setError(null);
+        setReport(null);
+        setCurrentStep(1);
+
+        // Step simulation intervals for visual progression
+        const timer1 = setTimeout(() => setCurrentStep(2), 1200);
+        const timer2 = setTimeout(() => setCurrentStep(3), 3500);
+        const timer3 = setTimeout(() => setCurrentStep(4), 8500);
+
+        try {
+          const res = await fetch('/api/research', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              query: searchQuery,
+              mode: mode,
+              simulate_failure: failureMode
+            })
+          });
+
+          if (!res.ok) {
+            const errData = await res.json();
+            throw new Error(errData.detail || 'Research failed');
+          }
+
+          const data = await res.json();
+          setCurrentStep(5);
+          setReport(data);
+        } catch (err) {
+          setError(err.message);
+        } finally {
+          clearTimeout(timer1);
+          clearTimeout(timer2);
+          clearTimeout(timer3);
+          setLoading(false);
+        }
+      };
+
+      const copyToClipboard = (text) => {
+        navigator.clipboard.writeText(text);
+        alert('Copied to clipboard!');
+      };
+
+      return (
+        <div class="max-w-6xl mx-auto px-4 py-8">
+          {/* Header */}
+          <header class="flex flex-col md:flex-row items-start md:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+            <div class="flex items-center gap-3">
+              <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center font-bold text-xl text-white shadow-lg shadow-cyan-500/20">
+                α
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <h1 class="text-xl font-bold tracking-tight text-white">Predixion AI</h1>
+                  <span class="px-2 py-0.5 rounded text-xs font-medium bg-cyan-950 text-cyan-400 border border-cyan-800/50">Research Agent</span>
+                </div>
+                <p class="text-xs text-slate-400">Production Agentic Platform • Planning • Grounded Tool Use • Evaluation</p>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-2">
+              <span class="flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium bg-slate-900 border border-slate-800 text-emerald-400">
+                <span class="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
+                FastAPI + React Stack
+              </span>
+              <a href="/docs" target="_blank" class="text-xs text-slate-400 hover:text-white px-3 py-1 rounded bg-slate-800/50 border border-slate-700/50">
+                API Docs ↗
+              </a>
+            </div>
+          </header>
+
+          {/* Preset Buttons */}
+          <div class="mt-6">
+            <span class="text-xs font-semibold uppercase tracking-wider text-slate-400 block mb-2">Assignment Rubric Benchmark Queries:</span>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2">
+              {PRESETS.map((p) => (
+                <button
+                  key={p.id}
+                  onClick={() => { setQuery(p.q); runResearch(p.q); }}
+                  class="text-left p-3 rounded-lg bg-slate-900/60 hover:bg-slate-800/80 border border-slate-800/80 hover:border-cyan-500/50 transition-all text-xs group"
+                >
+                  <div class="font-semibold text-slate-200 group-hover:text-cyan-400 mb-1 flex items-center justify-between">
+                    {p.title} <span>→</span>
+                  </div>
+                  <div class="text-slate-400 line-clamp-1">{p.q}</div>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Search Box & Controls */}
+          <div class="mt-6 glass-card p-5 rounded-2xl glow-cyan">
+            <div class="relative">
+              <textarea
+                rows="3"
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder="Enter a complex research question..."
+                class="w-full bg-slate-950/80 border border-slate-700/60 rounded-xl p-3.5 text-sm text-slate-100 placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 resize-none"
+              ></textarea>
+            </div>
+
+            <div class="mt-4 flex flex-wrap items-center justify-between gap-4">
+              <div class="flex flex-wrap items-center gap-3">
+                {/* Research Mode */}
+                <div class="flex items-center gap-1 bg-slate-950 p-1 rounded-lg border border-slate-800 text-xs">
+                  <button
+                    onClick={() => setMode('deep')}
+                    class={`px-3 py-1.5 rounded-md font-medium transition ${mode === 'deep' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Deep Scrape
+                  </button>
+                  <button
+                    onClick={() => setMode('fast')}
+                    class={`px-3 py-1.5 rounded-md font-medium transition ${mode === 'fast' ? 'bg-cyan-600 text-white' : 'text-slate-400 hover:text-white'}`}
+                  >
+                    Fast Snippets
+                  </button>
+                </div>
+
+                {/* Failure Injection Sandbox */}
+                <div class="flex items-center gap-2">
+                  <span class="text-xs text-amber-400 font-medium flex items-center gap-1">
+                    <span>⚡</span> Failure Sandbox:
+                  </span>
+                  <select
+                    value={failureMode}
+                    onChange={(e) => setFailureMode(e.target.value)}
+                    class="bg-slate-950 border border-amber-900/60 rounded-lg text-xs text-amber-200 px-2.5 py-1.5 focus:outline-none focus:border-amber-500"
+                  >
+                    <option value="none">Normal (Happy Path)</option>
+                    <option value="empty_results">Simulate 0 Search Results</option>
+                    <option value="bad_scrape">Simulate Scraper Block (403)</option>
+                  </select>
+                </div>
+              </div>
+
+              <button
+                disabled={loading}
+                onClick={() => runResearch()}
+                class={`px-6 py-2.5 rounded-xl font-semibold text-sm shadow-lg flex items-center gap-2 transition ${loading ? 'bg-slate-700 text-slate-400 cursor-not-allowed' : 'bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white shadow-cyan-500/20'}`}
+              >
+                {loading ? (
+                  <>
+                    <span class="animate-spin">⏳</span>
+                    <span>Running Agent...</span>
+                  </>
+                ) : (
+                  <>
+                    <span>🚀</span>
+                    <span>Launch Research Agent</span>
+                  </>
+                )}
+              </button>
+            </div>
+          </div>
+
+          {/* Pipeline Progress Indicator */}
+          {loading && (
+            <div class="mt-8 glass-card p-6 rounded-2xl border-cyan-500/30">
+              <h3 class="text-sm font-semibold text-cyan-400 mb-4 flex items-center gap-2">
+                <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+                Autonomous Agent Workflow in Progress
+              </h3>
+              <div class="grid grid-cols-1 md:grid-cols-5 gap-3">
+                {steps.map((st, idx) => {
+                  const isActive = currentStep === idx + 1;
+                  const isDone = currentStep > idx + 1;
+                  return (
+                    <div
+                      key={idx}
+                      class={`p-3 rounded-xl border text-xs transition-all ${
+                        isActive
+                          ? 'bg-cyan-950/40 border-cyan-500 text-cyan-200 glow-cyan'
+                          : isDone
+                          ? 'bg-emerald-950/20 border-emerald-800/40 text-emerald-300'
+                          : 'bg-slate-950/30 border-slate-800/50 text-slate-500'
+                      }`}
+                    >
+                      <div class="font-semibold flex items-center justify-between mb-1">
+                        <span>{st.name}</span>
+                        {isDone && <span class="text-emerald-400">✓</span>}
+                        {isActive && <span class="animate-spin">⚙</span>}
+                      </div>
+                      <div class="text-[11px] opacity-80">{st.desc}</div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+
+          {/* Error Message */}
+          {error && (
+            <div class="mt-6 p-4 rounded-xl bg-red-950/40 border border-red-800 text-red-300 text-sm">
+              <span class="font-bold">Error:</span> {error}
+            </div>
+          )}
+
+          {/* Final Research Report View */}
+          {report && (
+            <div class="mt-8 space-y-6">
+              {/* Top Banner with Confidence & Telemetry */}
+              <div class="glass-card p-5 rounded-2xl flex flex-col md:flex-row items-start md:items-center justify-between gap-4 border-slate-700/60">
+                <div>
+                  <span class="text-xs uppercase font-semibold text-slate-400 block mb-1">Factual Confidence Rating</span>
+                  <div class="flex items-center gap-3">
+                    <span class={`text-2xl font-extrabold ${report.confidence_level === 'High' ? 'text-emerald-400' : report.confidence_level === 'Medium' ? 'text-amber-400' : 'text-rose-400'}`}>
+                      {report.confidence_level} ({Math.round(report.confidence_score * 100)}%)
+                    </span>
+                    <span class="text-xs px-2.5 py-1 rounded bg-slate-800 text-slate-300 border border-slate-700">
+                      Citation-Verified
+                    </span>
+                  </div>
+                </div>
+
+                <div class="flex flex-wrap items-center gap-2 mono text-xs text-slate-400">
+                  <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800">Latency: {report.execution_metadata.total_latency_sec}s</span>
+                  <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800">Plan: {report.execution_metadata.plan_duration_sec}s</span>
+                  <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800">Tools: {report.execution_metadata.tools_duration_sec}s</span>
+                  <span class="px-2.5 py-1 rounded bg-slate-900 border border-slate-800">Model: {report.execution_metadata.model_used}</span>
+                </div>
+              </div>
+
+              {/* Short Answer */}
+              <div class="glass-card p-6 rounded-2xl border-cyan-500/20">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-cyan-400 mb-2">Executive Short Answer</h3>
+                <p class="text-base leading-relaxed text-slate-100">{report.short_answer}</p>
+              </div>
+
+              {/* Key Findings */}
+              <div class="glass-card p-6 rounded-2xl">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">Key Verified Findings</h3>
+                <div class="space-y-3">
+                  {report.key_findings.map((f, idx) => (
+                    <div key={idx} class="p-3.5 rounded-xl bg-slate-950/60 border border-slate-800/80 flex items-start gap-3">
+                      <span class="w-6 h-6 rounded-full bg-cyan-950 text-cyan-400 border border-cyan-800 text-xs flex items-center justify-center font-bold flex-shrink-0 mt-0.5">
+                        {idx + 1}
+                      </span>
+                      <span class="text-sm text-slate-200 leading-relaxed">{f}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sources Used */}
+              <div class="glass-card p-6 rounded-2xl">
+                <h3 class="text-xs font-semibold uppercase tracking-wider text-slate-400 mb-4">Verified Sources ({report.sources_used.length})</h3>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {report.sources_used.map((s, idx) => (
+                    <a
+                      key={idx}
+                      href={s.url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="p-4 rounded-xl bg-slate-950/60 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 transition block group"
+                    >
+                      <div class="flex items-center justify-between text-xs text-cyan-400 mb-1">
+                        <span class="font-medium">{s.domain}</span>
+                        <span class="text-slate-500 group-hover:text-cyan-300">↗</span>
+                      </div>
+                      <div class="text-sm font-semibold text-slate-200 group-hover:text-white line-clamp-1 mb-1">
+                        {s.title}
+                      </div>
+                      <div class="text-xs text-slate-400 line-clamp-2">{s.snippet}</div>
+                    </a>
+                  ))}
+                </div>
+              </div>
+
+              {/* Limitations & Next Steps */}
+              <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="glass-card p-5 rounded-2xl">
+                  <h4 class="text-xs font-semibold uppercase tracking-wider text-amber-400 mb-2">Limitations or Assumptions</h4>
+                  <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+                    {report.limitations_or_assumptions.map((l, i) => (
+                      <li key={i}>{l}</li>
+                    ))}
+                  </ul>
+                </div>
+
+                <div class="glass-card p-5 rounded-2xl">
+                  <h4 class="text-xs font-semibold uppercase tracking-wider text-indigo-400 mb-2">Suggested Next Steps</h4>
+                  <ul class="text-xs text-slate-300 space-y-2 list-disc list-inside">
+                    {report.suggested_next_steps.map((n, i) => (
+                      <li key={i}>{n}</li>
+                    ))}
+                  </ul>
+                </div>
+              </div>
+
+              {/* Copy Actions */}
+              <div class="flex items-center justify-end gap-3 pt-4">
+                <button
+                  onClick={() => copyToClipboard(JSON.stringify(report, null, 2))}
+                  class="px-4 py-2 rounded-lg bg-slate-800 hover:bg-slate-700 text-xs font-medium text-slate-200 border border-slate-700"
+                >
+                  Copy JSON Output
+                </button>
+              </div>
+            </div>
+          )}
+        </div>
+      );
+    }
+
+    ReactDOM.render(<App />, document.getElementById('root'));
+  </script>
+</body>
+</html>
